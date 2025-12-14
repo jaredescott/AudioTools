@@ -169,18 +169,6 @@ All tools are built with cutting-edge web technologies:
 
 ---
 
-## 📝 License
-
-All tools are released under the MIT License - free for personal and commercial use.
-
----
-
-## 🤝 Contributing
-
-Each tool is an independent project. Contributions, issues, and feature requests are welcome! Check individual project folders for specific contribution guidelines.
-
----
-
 ## 🎵 Start Your Audio Visual Journey
 
 Pick a tool above and dive in. Whether you're here to create, analyze, or simply enjoy the beauty of sound made visible, there's something for you.
