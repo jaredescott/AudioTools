@@ -79,27 +79,6 @@ Watch geometric patterns emerge as sound frequencies sculpt particles in 3D spac
 
 ---
 
-## 🚀 Getting Started
-
-Each tool is a standalone web application. Simply navigate to the folder you're interested in and follow the instructions in its README file.
-
-### Quick Start (for any tool):
-
-```bash
-# Navigate to a project folder
-cd "Custom Audio Reactive Shaders"  # or any other tool
-
-# Install dependencies
-npm install
-
-# Start the app
-npm run dev
-```
-
-Then open your browser to the URL shown in the terminal (usually `http://localhost:5173`).
-
----
-
 ## 🎨 What Makes These Tools Special?
 
 - **🌐 Web-Based**: No installation needed - runs directly in your browser
@@ -113,15 +92,20 @@ Then open your browser to the URL shown in the terminal (usually `http://localho
 ## 🎬 See Them in Action
 
 ### Custom Audio Reactive Shaders
-- [Video Demo 1](Custom%20Audio%20Reactive%20Shaders/demo/2025-12-14%2016-06-35.mp4)
-- [Video Demo 2](Custom%20Audio%20Reactive%20Shaders/demo/2025-12-14%2016-08-12.mp4)
-- [Video Demo 3](Custom%20Audio%20Reactive%20Shaders/demo/2025-12-14%2016-09-45.mp4)
+
+https://github.com/ehsanpo/AudioTools/assets/1638660/shader-demo-1.mp4
+
+https://github.com/ehsanpo/AudioTools/assets/1638660/shader-demo-2.mp4
+
+https://github.com/ehsanpo/AudioTools/assets/1638660/shader-demo-3.mp4
 
 ### Audio Goniometer
-- [Video Demo](React%20Goniometer/demo/2025-12-14%2016-17-59.mp4)
+
+https://github.com/ehsanpo/AudioTools/assets/1638660/goniometer-demo.mp4
 
 ### 3D Cymatics
-- [Video Demo](Real-Time%20Sound-Reactive%203D%20Cymatics/demo/2025-12-14%2015-57-50.mp4)
+
+https://github.com/ehsanpo/AudioTools/assets/1638660/cymatics-demo.mp4
 
 ---
 
