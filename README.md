@@ -93,19 +93,19 @@ Watch geometric patterns emerge as sound frequencies sculpt particles in 3D spac
 
 ### Custom Audio Reactive Shaders
 
-https://github.com/ehsanpo/AudioTools/assets/1638660/shader-demo-1.mp4
+https://github.com/ehsanpo/AudioTools/assets/1638660/2025-12-14%2016-06-35.mp4
 
-https://github.com/ehsanpo/AudioTools/assets/1638660/shader-demo-2.mp4
+https://github.com/ehsanpo/AudioTools/assets/1638660/2025-12-14%2016-08-12.mp4
 
-https://github.com/ehsanpo/AudioTools/assets/1638660/shader-demo-3.mp4
+https://github.com/ehsanpo/AudioTools/assets/1638660/2025-12-14%2016-09-45.mp4
 
 ### Audio Goniometer
 
-https://github.com/ehsanpo/AudioTools/assets/1638660/goniometer-demo.mp4
+https://github.com/ehsanpo/AudioTools/assets/1638660/2025-12-14%2016-17-59.mp4
 
 ### 3D Cymatics
 
-https://github.com/ehsanpo/AudioTools/assets/1638660/cymatics-demo.mp4
+https://github.com/ehsanpo/AudioTools/assets/1638660/2025-12-14%2015-57-50.mp4
 
 ---
 
