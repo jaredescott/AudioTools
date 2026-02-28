@@ -5,12 +5,23 @@ import { useAudioAnalyzer } from './hooks/useAudioAnalyzer';
 import { shaders } from './shaders';
 
 function App() {
-  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentShader, setCurrentShader] = useState(0);
   const [isRandomMode, setIsRandomMode] = useState(false);
   const [colorOffset, setColorOffset] = useState(0);
-  const audioData = useAudioAnalyzer(audioElement);
+
+  const {
+    audioData,
+    isActive,
+    audioSource,
+    audioElement,
+    isAudioReady,
+    loadError,
+    startMicrophone,
+    stopAudio,
+    loadAudioFile,
+    setLoadError,
+  } = useAudioAnalyzer();
 
   const handleRandomizeColors = () => {
     setColorOffset(Math.random() * Math.PI * 2);
@@ -44,7 +55,7 @@ function App() {
       {/* Visualizer */}
       <AudioVisualizer
         audioData={audioData}
-        isPlaying={isPlaying}
+        isPlaying={isPlaying || (audioSource === 'microphone' && isActive)}
         currentShader={currentShader}
         colorOffset={colorOffset}
       />
@@ -52,9 +63,16 @@ function App() {
       {/* Controls */}
       <AudioControls
         audioElement={audioElement}
-        setAudioElement={setAudioElement}
+        isActive={isActive}
+        audioSource={audioSource}
         isPlaying={isPlaying}
         setIsPlaying={setIsPlaying}
+        isAudioReady={isAudioReady}
+        loadError={loadError}
+        setLoadError={setLoadError}
+        onStartMicrophone={startMicrophone}
+        onStopAudio={stopAudio}
+        onLoadAudioFile={loadAudioFile}
         currentShader={currentShader}
         onShaderChange={setCurrentShader}
         shaderNames={shaders.map(s => s.name)}

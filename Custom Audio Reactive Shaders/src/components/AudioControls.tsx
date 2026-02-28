@@ -1,11 +1,19 @@
-import { useRef, useState } from 'react';
-import { Play, Pause, Upload, Volume2, VolumeX, Sparkles, Shuffle, Palette } from 'lucide-react';
+import { useRef, useState, useEffect } from 'react';
+import { Play, Pause, Upload, Mic, Square, Volume2, VolumeX, Sparkles, Shuffle, Palette } from 'lucide-react';
+import type { AudioSource } from '../hooks/useAudioAnalyzer';
 
 interface AudioControlsProps {
   audioElement: HTMLAudioElement | null;
-  setAudioElement: (element: HTMLAudioElement | null) => void;
+  isActive: boolean;
+  audioSource: AudioSource;
   isPlaying: boolean;
   setIsPlaying: (playing: boolean) => void;
+  isAudioReady: boolean;
+  loadError: string | null;
+  setLoadError: (error: string | null) => void;
+  onStartMicrophone: () => Promise<void>;
+  onStopAudio: () => void;
+  onLoadAudioFile: (file: File) => void;
   currentShader: number;
   onShaderChange: (index: number) => void;
   shaderNames: string[];
@@ -16,9 +24,16 @@ interface AudioControlsProps {
 
 export function AudioControls({
   audioElement,
-  setAudioElement,
+  isActive,
+  audioSource,
   isPlaying,
   setIsPlaying,
+  isAudioReady,
+  loadError,
+  setLoadError,
+  onStartMicrophone,
+  onStopAudio,
+  onLoadAudioFile,
   currentShader,
   onShaderChange,
   shaderNames,
@@ -38,37 +53,49 @@ export function AudioControls({
     if (!file) return;
 
     setSongName(file.name.replace(/\.[^/.]+$/, ''));
-
-    const audio = new Audio();
-    audio.src = URL.createObjectURL(file);
-    audio.volume = volume;
-    audio.loop = true;
-
-    audio.addEventListener('loadedmetadata', () => {
-      setDuration(audio.duration);
-    });
-
-    audio.addEventListener('timeupdate', () => {
-      setCurrentTime(audio.currentTime);
-    });
-
-    audio.addEventListener('ended', () => {
-      setIsPlaying(false);
-    });
-
-    setAudioElement(audio);
+    setLoadError(null);
+    setCurrentTime(0);
+    setDuration(0);
+    onLoadAudioFile(file);
     setIsPlaying(false);
   };
 
-  const togglePlayPause = () => {
+  const handleStartMicrophone = async () => {
+    try {
+      setLoadError(null);
+      await onStartMicrophone();
+    } catch {
+      // Error already set by hook
+    }
+  };
+
+  const handleStopAudio = () => {
+    onStopAudio();
+    setSongName('');
+    setCurrentTime(0);
+    setDuration(0);
+    setIsPlaying(false);
+  };
+
+  const togglePlayPause = async () => {
     if (!audioElement) return;
 
     if (isPlaying) {
       audioElement.pause();
+      setIsPlaying(false);
     } else {
-      audioElement.play();
+      try {
+        await audioElement.play();
+        setIsPlaying(true);
+      } catch (err) {
+        console.error('Playback failed:', err);
+        if (err instanceof DOMException && err.name === 'NotAllowedError') {
+          setLoadError('Click the page first to enable audio, then try again.');
+        } else {
+          setLoadError('Unable to play. Try a different file (MP3 or WAV work best).');
+        }
+      }
     }
-    setIsPlaying(!isPlaying);
   };
 
   const handleVolumeChange = (value: number) => {
@@ -98,42 +125,106 @@ export function AudioControls({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  useEffect(() => {
+    if (!audioElement) return;
+    audioElement.volume = volume;
+    const onMetadata = () => setDuration(audioElement.duration);
+    const onTimeUpdate = () => setCurrentTime(audioElement.currentTime);
+    const onEnded = () => setIsPlaying(false);
+    audioElement.addEventListener('loadedmetadata', onMetadata);
+    audioElement.addEventListener('timeupdate', onTimeUpdate);
+    audioElement.addEventListener('ended', onEnded);
+    return () => {
+      audioElement.removeEventListener('loadedmetadata', onMetadata);
+      audioElement.removeEventListener('timeupdate', onTimeUpdate);
+      audioElement.removeEventListener('ended', onEnded);
+    };
+  }, [audioElement]);
+
+  useEffect(() => {
+    if (audioElement) audioElement.volume = volume;
+  }, [audioElement, volume]);
+
+  const hasAudio = isActive && (audioSource === 'microphone' || audioSource === 'file');
+  const isMicActive = isActive && audioSource === 'microphone';
+
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-black/95 via-black/90 to-transparent backdrop-blur-lg">
       <div className="max-w-4xl mx-auto px-6 py-6">
         {/* Song info and progress */}
-        {audioElement && (
+        {(hasAudio || loadError) && (
           <div className="mb-4">
+            {loadError && (
+              <p className="text-amber-400 text-sm mb-2">{loadError}</p>
+            )}
             <div className="flex justify-between items-center mb-2">
               <h3 className="text-white font-medium truncate max-w-md">
-                {songName || 'Unknown Track'}
+                {isMicActive ? 'Microphone' : songName || 'Unknown Track'}
               </h3>
               <span className="text-gray-400 text-sm tabular-nums">
-                {formatTime(currentTime)} / {formatTime(duration)}
+                {isMicActive
+                  ? 'Live'
+                  : !isAudioReady
+                    ? 'Loading...'
+                    : `${formatTime(currentTime)} / ${formatTime(duration)}`}
               </span>
             </div>
-            <input
-              type="range"
-              min="0"
-              max={duration || 0}
-              value={currentTime}
-              onChange={(e) => handleSeek(parseFloat(e.target.value))}
-              className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500 hover:accent-cyan-400 transition-colors"
-            />
+            {audioElement && (
+              <input
+                type="range"
+                min="0"
+                max={duration || 0}
+                value={currentTime}
+                onChange={(e) => handleSeek(parseFloat(e.target.value))}
+                className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-500 hover:accent-cyan-400 transition-colors"
+              />
+            )}
           </div>
         )}
 
         {/* Controls */}
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            {/* Upload button */}
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-lg transition-all duration-200 font-medium shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-105"
-            >
-              <Upload className="w-4 h-4" />
-              <span>Choose Song</span>
-            </button>
+            {/* Microphone button */}
+            {isMicActive ? (
+              <button
+                onClick={handleStopAudio}
+                className="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-lg transition-all duration-200 font-medium shadow-lg"
+              >
+                <Square className="w-4 h-4" />
+                <span>Stop Mic</span>
+              </button>
+            ) : (
+              <button
+                onClick={handleStartMicrophone}
+                className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-all duration-200 font-medium shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:scale-105"
+              >
+                <Mic className="w-4 h-4" />
+                <span>Use Microphone</span>
+              </button>
+            )}
+
+            {/* Upload button - shown when not using mic */}
+            {!isMicActive && (
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-lg transition-all duration-200 font-medium shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-105"
+              >
+                <Upload className="w-4 h-4" />
+                <span>Choose Song</span>
+              </button>
+            )}
+
+            {/* Stop button when file is loaded */}
+            {audioSource === 'file' && audioElement && (
+              <button
+                onClick={handleStopAudio}
+                className="flex items-center gap-2 px-4 py-2.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors font-medium"
+              >
+                <Square className="w-4 h-4" />
+                <span>Stop</span>
+              </button>
+            )}
 
             {/* Shader selector */}
             <div className="relative">
@@ -181,12 +272,13 @@ export function AudioControls({
             className="hidden"
           />
 
-          {/* Play/Pause */}
+          {/* Play/Pause - only for file, not mic */}
           {audioElement && (
             <button
               onClick={togglePlayPause}
-              className="p-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded-full transition-all duration-200 hover:scale-110 shadow-lg"
-              disabled={!audioElement}
+              className="p-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white rounded-full transition-all duration-200 hover:scale-110 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              disabled={!isAudioReady}
+              title={!isAudioReady ? 'Loading...' : isPlaying ? 'Pause' : 'Play'}
             >
               {isPlaying ? (
                 <Pause className="w-6 h-6" fill="currentColor" />
@@ -196,7 +288,7 @@ export function AudioControls({
             </button>
           )}
 
-          {/* Volume control */}
+          {/* Volume control - only for file */}
           {audioElement && (
             <div className="flex items-center gap-3 flex-1 max-w-xs">
               <button
@@ -223,10 +315,10 @@ export function AudioControls({
         </div>
 
         {/* Instructions */}
-        {!audioElement && (
+        {!hasAudio && !loadError && (
           <div className="mt-4 text-center">
             <p className="text-gray-400 text-sm">
-              Upload a song to see the audio-reactive visualization
+              Use microphone or upload a song to see the audio-reactive visualization
             </p>
           </div>
         )}
