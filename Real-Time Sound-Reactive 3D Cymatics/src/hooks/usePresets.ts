@@ -7,6 +7,10 @@ export const usePresets = () => {
   const [error, setError] = useState<string | null>(null);
 
   const loadPresets = useCallback(async () => {
+    if (!supabase) {
+      setPresets([]);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
@@ -29,6 +33,9 @@ export const usePresets = () => {
   }, []);
 
   const savePreset = useCallback(async (preset: Omit<CymaticPreset, 'id' | 'created_at' | 'updated_at'>) => {
+    if (!supabase) {
+      throw new Error('Presets require Supabase. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to .env');
+    }
     try {
       setLoading(true);
       setError(null);
@@ -57,6 +64,7 @@ export const usePresets = () => {
   }, []);
 
   const deletePreset = useCallback(async (id: string) => {
+    if (!supabase) return;
     try {
       setLoading(true);
       setError(null);
@@ -80,6 +88,10 @@ export const usePresets = () => {
   }, []);
 
   const loadPublicPresets = useCallback(async () => {
+    if (!supabase) {
+      setPresets([]);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
